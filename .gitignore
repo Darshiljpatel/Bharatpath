@@ -1,0 +1,47 @@
+# Environment & Secret Configurations
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor Configurations
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Local SQLite Development Databases (can be rebuilt via etl/load_excel_to_db.py)
+*.sqlite
+*.sqlite3
+database/bharatpath_dev.db
+
+# Logs & Temporary Files
+*.log
+logs/
+tmp/
+temp/
+scratch/
