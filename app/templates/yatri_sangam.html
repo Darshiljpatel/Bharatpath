@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Yatri-Sangam – Ancient Indian Traveller Chronicles & Pilgrim Corridors{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="manuscript-card rounded-xl p-5 border border-amber-300">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-black text-amber-950 font-heading tracking-wide flex items-center gap-2">
+          <span>यात्री-सङ्गम</span>
+          <span class="text-stone-400 font-light">&bull;</span>
+          <span>Yatri-Sangam (Ancient Indian Traveller Chronicles)</span>
+        </h1>
+        <p class="text-sm text-stone-600 mt-1">
+          Chronicles of classical ambassadors, pilgrims, and philosophers (<span class="font-bold text-amber-800">Megasthenes, Faxian, Xuanzang, Adi Shankaracharya</span>) reconstructing their step-by-step itineraries, dynastic hosts, and cultural exchanges.
+        </p>
+      </div>
+
+      <!-- Quick Summary Badge -->
+      <div class="text-xs font-semibold text-amber-900 bg-amber-100/80 px-3 py-1.5 rounded-lg border border-amber-300 flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-person-walking-luggage text-amber-700"></i>
+        <span id="travellerCountBadge">28 Historical Chroniclers</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Travellers Layout Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- Left: Traveller Selector Cards (4 Cols) -->
+    <div class="lg:col-span-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="font-heading text-xs font-bold text-amber-950 uppercase tracking-wider">
+          Select Historical Traveller:
+        </div>
+      </div>
+
+      <!-- Live Search Input -->
+      <div>
+        <input type="text" id="travellerSearchInput" placeholder="Search name, homeland, role, city..." class="w-full text-xs p-2 bg-white border border-amber-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+      </div>
+
+      <div id="travellerList" class="space-y-3 max-h-[75vh] overflow-y-auto pr-1">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+
+    <!-- Right: Chronological Itinerary & Cultural Exchanges (8 Cols) -->
+    <div class="lg:col-span-8 space-y-6">
+      
+      <!-- Traveller Profile Banner -->
+      <div id="travellerProfileCard" class="manuscript-card rounded-xl p-5 border border-amber-300 bg-amber-50/60">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Step-by-Step Chronological Journey Timeline -->
+      <div class="manuscript-card rounded-xl p-6 border border-amber-300">
+        <h3 class="font-heading font-black text-amber-950 text-base mb-4 flex items-center gap-2 border-b border-amber-200 pb-2">
+          <i class="fa-solid fa-map-pin text-amber-700"></i>
+          <span>Chronological Journey Waypoints</span>
+        </h3>
+
+        <div id="journeyTimelineContainer" class="space-y-6 pl-2">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Linked Cultural & Philosophical Exchanges -->
+      <div class="manuscript-card rounded-xl p-6 border border-amber-300">
+        <h3 class="font-heading font-black text-amber-950 text-base mb-3 flex items-center gap-2 border-b border-amber-200 pb-2">
+          <i class="fa-solid fa-book-open-reader text-purple-700"></i>
+          <span>Diffused Cultural & Philosophical Traditions</span>
+        </h3>
+        <p class="text-xs text-stone-600 mb-4">
+          Transmissions of Buddhist philosophy, Gandhara sculptural arts, Sanskrit grammar, and Ayurvedic knowledge along these corridors.
+        </p>
+
+        <div id="culturalExchangesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let allTravellers = [];
+  let currentTravellerId = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadTravellers();
+    document.getElementById('travellerSearchInput').addEventListener('input', filterAndRenderTravellers);
+  });
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
+  }
+
+  async function loadTravellers() {
+    try {
+      const res = await fetch('/api/travellers');
+      const data = await res.json();
+      allTravellers = data.data || [];
+      filterAndRenderTravellers();
+
+      if (allTravellers.length > 0) {
+        selectTraveller(allTravellers[0].traveller_id);
+      }
+    } catch (e) {
+      console.error('Error fetching travellers:', e);
+    }
+  }
+
+  function filterAndRenderTravellers() {
+    const query = (document.getElementById('travellerSearchInput').value || '').trim().toLowerCase();
+
+    const filtered = allTravellers.filter(t => {
+      // If search box is empty, all 28 travellers display!
+      if (!query) return true;
+
+      // Case-insensitive check across normalized schema fields
+      const searchFields = [
+        t.traveller_name,
+        t.homeland,
+        t.role,
+        t.kingdom_name,
+        t.city_name,
+        t.account_title,
+        t.key_observation
+      ];
+
+      return searchFields.some(val => 
+        val !== null && val !== undefined && val.toString().toLowerCase().includes(query)
+      );
+    });
+
+    renderTravellerList(filtered);
+
+    // Keep active selection valid
+    if (filtered.length > 0) {
+      const exists = filtered.some(t => String(t.traveller_id) === String(currentTravellerId));
+      if (!exists) {
+        selectTraveller(filtered[0].traveller_id);
+      }
+    }
+  }
+
+  function renderTravellerList(travellerList) {
+    const list = document.getElementById('travellerList');
+    const badge = document.getElementById('travellerCountBadge');
+    
+    if (badge) {
+      badge.textContent = `${travellerList.length} of ${allTravellers.length || 28} Historical Chroniclers`;
+    }
+
+    if (!travellerList || travellerList.length === 0) {
+      list.innerHTML = `<div class="p-6 text-center text-xs text-stone-500 manuscript-card">No travellers match the search query.</div>`;
+      return;
+    }
+
+    list.innerHTML = travellerList.map(t => `
+      <div onclick="selectTraveller('${escapeHtml(t.traveller_id)}')" 
+           id="travellerTab_${escapeHtml(t.traveller_id)}"
+           class="manuscript-card rounded-xl p-4 border cursor-pointer hover:border-amber-600 transition flex items-center justify-between ${String(t.traveller_id) === String(currentTravellerId) ? 'border-amber-700 bg-amber-100/70 ring-2 ring-amber-500' : ''}">
+        <div>
+          <h4 class="font-heading font-bold text-amber-950 text-sm">${escapeHtml(t.traveller_name)}</h4>
+          <p class="text-xs text-stone-600">${escapeHtml(t.homeland || t.origin_country)} &bull; ${escapeHtml(t.travel_period)}</p>
+        </div>
+        <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-mono text-xs font-bold border border-amber-300">
+          ${t.total_stops || 3} stops
+        </span>
+      </div>
+    `).join('');
+  }
+
+  async function selectTraveller(travellerId) {
+    currentTravellerId = travellerId;
+
+    // Highlight active card
+    document.querySelectorAll('[id^="travellerTab_"]').forEach(el => {
+      el.classList.remove('border-amber-700', 'bg-amber-100/70', 'ring-2', 'ring-amber-500');
+    });
+    const activeTab = document.getElementById('travellerTab_' + travellerId);
+    if (activeTab) {
+      activeTab.classList.add('border-amber-700', 'bg-amber-100/70', 'ring-2', 'ring-amber-500');
+    }
+
+    try {
+      const res = await fetch('/api/travellers/' + travellerId + '/journey');
+      const data = await res.json();
+      renderJourney(data);
+    } catch (e) {
+      console.error('Error fetching traveller journey:', e);
+    }
+  }
+
+  function renderJourney(data) {
+    const t = data.traveller;
+    const stops = data.journey_stops || [];
+    const exchanges = data.cultural_exchanges || [];
+
+    // Profile Card
+    const meta = t.artefact_metadata || {};
+    document.getElementById('travellerProfileCard').innerHTML = `
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="px-2.5 py-0.5 rounded bg-amber-800 text-amber-100 text-[10px] font-bold uppercase tracking-wider">
+              ${escapeHtml(t.role || t.profession)}
+            </span>
+            <span class="text-xs text-stone-500 font-semibold">${escapeHtml(t.travel_period)}</span>
+          </div>
+          <h2 class="font-heading font-black text-2xl text-amber-950">${escapeHtml(t.traveller_name)}</h2>
+          <p class="text-xs text-amber-900 font-serif-sub font-semibold mt-0.5">
+            <strong>Chronicle:</strong> <em>${escapeHtml(t.account_title || t.chronicle_title || 'Historical Memoirs')}</em> &bull; 
+            <strong>Origin:</strong> ${escapeHtml(t.homeland || t.origin_country)} &bull;
+            <strong>Host Realm:</strong> ${escapeHtml(t.kingdom_name || 'Classical Sovereign Realm')}
+          </p>
+        </div>
+        <div>
+          <button onclick="window.openPramanaModal('traveller', '${escapeHtml(t.traveller_id)}')" class="badge-pramana text-xs py-1.5 px-3">
+            <i class="fa-solid fa-scroll text-amber-600"></i> Primary Source Records
+          </button>
+        </div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-amber-200/80 text-xs text-stone-700">
+        <strong class="text-amber-900">Key Observation & Recorded Impression:</strong>
+        <p class="font-serif-sub italic text-stone-800 mt-1 leading-relaxed">"${escapeHtml(t.key_observation)}"</p>
+      </div>
+    `;
+
+    // Timeline Stops
+    const timelineContainer = document.getElementById('journeyTimelineContainer');
+    if (stops.length === 0) {
+      timelineContainer.innerHTML = `<p class="text-xs text-stone-500">No stops recorded for this traveller.</p>`;
+    } else {
+      timelineContainer.innerHTML = stops.map((stop, idx) => `
+        <div class="relative pl-8 border-l-2 border-amber-500 last:border-l-0 pb-6 last:pb-0">
+          <!-- Step Number Marker -->
+          <div class="absolute -left-[14px] top-0 w-7 h-7 rounded-full bg-amber-800 text-amber-100 flex items-center justify-center font-bold text-xs border-2 border-white shadow">
+            ${stop.visit_order || (idx + 1)}
+          </div>
+
+          <div class="bg-white/80 p-4 rounded-lg border border-amber-200 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+              <div>
+                <h4 class="font-heading font-black text-base text-amber-950">${escapeHtml(stop.classical_name)}</h4>
+                <span class="text-xs text-stone-500">Modern: ${escapeHtml(stop.modern_name)} &bull; Region: ${escapeHtml(stop.region)}</span>
+              </div>
+              <div class="text-left sm:text-right">
+                <span class="inline-block px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-bold text-[10px] border border-purple-300">
+                  <i class="fa-solid fa-crown mr-1"></i> ${escapeHtml(stop.ruling_dynasty_at_stop)}
+                </span>
+              </div>
+            </div>
+
+            <p class="text-xs text-stone-700 leading-relaxed font-serif-sub italic bg-amber-50/50 p-2.5 rounded border-l-2 border-amber-600 mb-3">
+              "${escapeHtml(stop.recorded_observation || 'Visited the commercial halts and religious shrines.')}"
+            </p>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1 border-t border-amber-100">
+              <span class="text-stone-600">
+                <i class="fa-solid fa-route text-amber-700 mr-1"></i> Corridors: <strong>${escapeHtml(stop.route_name || 'Imperial Highway')}</strong>
+              </span>
+              ${stop.pramana_source_title ? `
+                <button onclick="window.openPramanaModal('source', '${escapeHtml(stop.pramana_source_id)}')" class="badge-pramana text-[10px]">
+                  <i class="fa-solid fa-feather-pointed"></i> Cited in ${escapeHtml(stop.pramana_source_title)}
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Cultural Exchanges
+    const exchangesContainer = document.getElementById('culturalExchangesGrid');
+    if (exchanges.length === 0) {
+      exchangesContainer.innerHTML = `<p class="col-span-2 text-xs text-stone-500">No specific cultural exchange events recorded for these stops.</p>`;
+    } else {
+      exchangesContainer.innerHTML = exchanges.map(ex => `
+        <div class="bg-white/80 p-3.5 rounded-lg border border-amber-200 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-900 border border-purple-300">
+              ${escapeHtml(ex.category)}
+            </span>
+            <span class="text-[10px] text-stone-500 font-semibold">${escapeHtml(ex.period)}</span>
+          </div>
+          <h4 class="font-heading font-bold text-amber-950 text-xs">${escapeHtml(ex.exchange_title)}</h4>
+          <p class="text-[11px] text-stone-600 leading-relaxed">${escapeHtml(ex.description)}</p>
+          <div class="pt-1 text-[10px] text-amber-900 font-semibold">
+            <span>${escapeHtml(ex.origin_city)}</span> <i class="fa-solid fa-arrow-right mx-1 text-amber-600"></i> <span>${escapeHtml(ex.destination_city)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+</script>
+{% endblock %}

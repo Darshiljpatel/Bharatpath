@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Viva SQL Lab & NLP Workbench – BharatPath{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="manuscript-card rounded-xl p-5 border border-amber-300">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-black text-amber-950 font-heading tracking-wide flex items-center gap-2">
+          <span>वाक्-प्रयोगशाला</span>
+          <span class="text-stone-400 font-light">&bull;</span>
+          <span>Viva SQL Lab & NLP Workbench</span>
+        </h1>
+        <p class="text-sm text-stone-600 mt-1">
+          Academic DBMS evaluation suite with 15 preset viva queries, natural language <span class="font-bold text-amber-800">Vāk-to-SQL</span> translation, and historical text entity extraction.
+        </p>
+      </div>
+
+      <!-- Tab Navigation Buttons -->
+      <div class="flex items-center gap-1 bg-amber-100/70 p-1 rounded-lg border border-amber-300 text-xs font-bold">
+        <button id="tabBtnViva" class="px-3.5 py-1.5 rounded-md bg-amber-800 text-white shadow-sm transition">
+          <i class="fa-solid fa-list-check mr-1.5"></i> 15 Viva Queries
+        </button>
+        <button id="tabBtnVak" class="px-3.5 py-1.5 rounded-md text-amber-950 hover:bg-amber-200 transition">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> Vāk-to-SQL
+        </button>
+        <button id="tabBtnNer" class="px-3.5 py-1.5 rounded-md text-amber-950 hover:bg-amber-200 transition">
+          <i class="fa-solid fa-highlighter mr-1.5"></i> Text-to-Entity
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 1: 15 Viva Analytical Queries Runner -->
+  <section id="tabContentViva" class="space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- Query Selector Cards (5 Cols) -->
+      <div class="lg:col-span-5 space-y-3">
+        <div class="manuscript-card p-3 rounded-lg border border-amber-200 flex items-center justify-between text-xs">
+          <span class="font-bold text-amber-950">Select Evaluation Query:</span>
+          <span id="vivaQueriesCount" class="font-mono text-stone-500">15 Queries</span>
+        </div>
+        <div id="vivaQueriesList" class="space-y-2.5 max-h-[620px] overflow-y-auto pr-1">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Query Details & Live Output Table (7 Cols) -->
+      <div class="lg:col-span-7 space-y-4">
+        <div class="manuscript-card rounded-xl p-5 border border-amber-300">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200 pb-3 mb-3">
+            <div>
+              <span id="activeQueryCategory" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                Category
+              </span>
+              <h3 id="activeQueryTitle" class="font-heading font-black text-amber-950 text-lg mt-1">Select a query</h3>
+            </div>
+            <button id="runSelectedVivaQueryBtn" class="btn-terracotta text-xs py-1.5 px-4 flex items-center gap-1.5 self-start sm:self-auto">
+              <i class="fa-solid fa-play text-[10px]"></i> Execute Live
+            </button>
+          </div>
+
+          <p id="activeQueryDesc" class="text-xs text-stone-600 mb-3 font-serif-sub italic leading-relaxed"></p>
+
+          <!-- Collapsible SQL Preview -->
+          <div class="mb-4">
+            <div class="flex items-center justify-between text-xs font-bold text-stone-700 mb-1">
+              <span>PostgreSQL DQL Statement:</span>
+              <button onclick="navigator.clipboard.writeText(document.getElementById('activeQuerySql').textContent); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy SQL', 1500);" class="text-[11px] text-amber-800 hover:underline">
+                Copy SQL
+              </button>
+            </div>
+            <pre id="activeQuerySql" class="bg-stone-900 text-amber-300 p-3 rounded text-xs font-mono overflow-x-auto max-h-[160px] leading-relaxed"></pre>
+          </div>
+
+          <!-- Execution Metrics Banner -->
+          <div id="vivaExecutionMetrics" class="hidden bg-amber-50 p-2.5 rounded border border-amber-200 flex items-center justify-between text-xs font-mono mb-3">
+            <span class="text-emerald-700 font-bold"><i class="fa-solid fa-check mr-1"></i> Success</span>
+            <span class="text-stone-700">Time: <strong id="vivaExecTime" class="text-amber-900">0 ms</strong></span>
+            <span class="text-stone-700">Rows: <strong id="vivaExecRows" class="text-amber-900">0</strong></span>
+          </div>
+
+          <!-- Live Result Table -->
+          <div id="vivaResultsTableContainer" class="overflow-x-auto max-h-[380px] border border-amber-200 rounded-lg">
+            <div class="p-8 text-center text-stone-400 text-xs">
+              Click <strong>"Execute Live"</strong> to run this SQL query against PostgreSQL.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- TAB 2: Vāk-to-SQL (Natural Language Querying) -->
+  <section id="tabContentVak" class="space-y-6 hidden">
+    <div class="manuscript-card rounded-xl p-6 border border-amber-300 max-w-4xl mx-auto">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-8 h-8 rounded-full bg-amber-800 text-amber-100 flex items-center justify-center">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <div>
+          <h3 class="font-heading font-black text-amber-950 text-lg">Vāk-to-SQL: Natural Language Querying</h3>
+          <p class="text-xs text-stone-600">Translate plain-English historical inquiries into validated, read-only PostgreSQL queries.</p>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div class="mt-4 mb-3">
+        <span class="text-xs font-bold text-amber-900 block mb-1.5">Try a Viva Question:</span>
+        <div class="flex flex-wrap gap-2 text-xs">
+          <button onclick="setVakQuestion('Which ports under the Chola dynasty exported black pepper?')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
+            Chola ports exporting pepper
+          </button>
+          <button onclick="setVakQuestion('List all gold coins issued by the Gupta kingdom')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
+            Gupta gold coinage
+          </button>
+          <button onclick="setVakQuestion('Show cities along the Uttarapatha route')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
+            Cities on Uttarapatha
+          </button>
+          <button onclick="setVakQuestion('Which commodities were traded from Muziris?')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
+            Commodities from Muziris
+          </button>
+        </div>
+      </div>
+
+      <!-- Question Input Form -->
+      <form id="vakToSqlForm" class="flex gap-2">
+        <input type="text" id="vakQuestionInput" placeholder="e.g. Which ports under the Chola dynasty exported black pepper?" 
+               class="flex-grow p-2.5 text-sm bg-white border border-amber-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium">
+        <button type="submit" class="btn-terracotta text-xs px-5 py-2.5 flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-bolt"></i> Translate & Run
+        </button>
+      </form>
+
+      <!-- Vāk Results Container -->
+      <div id="vakResultsBox" class="mt-6 hidden space-y-4">
+        <!-- Safety & SQL Display -->
+        <div class="bg-stone-900 p-4 rounded-lg text-xs space-y-2 font-mono">
+          <div class="flex items-center justify-between text-amber-400 border-b border-stone-800 pb-2">
+            <span class="flex items-center gap-1.5 text-emerald-400 font-bold">
+              <i class="fa-solid fa-shield-halved"></i> Read-Only Sanitizer Verified
+            </span>
+            <span class="text-stone-400" id="vakExecutionTiming">0 ms</span>
+          </div>
+          <pre id="vakGeneratedSql" class="text-amber-300 overflow-x-auto leading-relaxed select-all"></pre>
+        </div>
+
+        <!-- Result Table -->
+        <div id="vakTableContainer" class="overflow-x-auto max-h-[360px] border border-amber-200 rounded-lg"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- TAB 3: Historical Text-to-Entity Extractor -->
+  <section id="tabContentNer" class="space-y-6 hidden">
+    <div class="manuscript-card rounded-xl p-6 border border-amber-300 max-w-4xl mx-auto space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-amber-800 text-amber-100 flex items-center justify-center">
+          <i class="fa-solid fa-highlighter"></i>
+        </div>
+        <div>
+          <h3 class="font-heading font-black text-amber-950 text-lg">Historical Text-to-Entity Extractor</h3>
+          <p class="text-xs text-stone-600">Cross-reference classical excerpts with normalized 3NF entities (Cities, Kingdoms, Routes, Commodities, Currencies).</p>
+        </div>
+      </div>
+
+      <!-- One-Click Sample Excerpts -->
+      <div>
+        <span class="text-xs font-bold text-amber-900 block mb-1">Load Classical Viva Passage:</span>
+        <div id="samplePassagesButtons" class="flex flex-wrap gap-2 text-xs">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Passage Input -->
+      <div>
+        <textarea id="nerTextInput" rows="4" class="w-full p-3 text-xs bg-white border border-amber-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-serif-sub text-stone-800 leading-relaxed" 
+                  placeholder="Paste any classical Greek, Sanskrit, Chinese or modern historical passage here..."></textarea>
+        <div class="flex justify-end mt-2">
+          <button id="extractEntitiesBtn" class="btn-terracotta text-xs py-2 px-4 flex items-center gap-1.5">
+            <i class="fa-solid fa-wand-magic"></i> Extract & Cross-Link Entities
+          </button>
+        </div>
+      </div>
+
+      <!-- Extracted Results Box -->
+      <div id="nerResultsBox" class="mt-6 hidden space-y-4">
+        <!-- Category Summary Counters -->
+        <div id="nerCategoryBadges" class="flex flex-wrap items-center gap-2 text-xs pt-2 border-t border-amber-200"></div>
+
+        <!-- Highlighted Inline Passage -->
+        <div class="bg-amber-50/70 p-5 rounded-xl border border-amber-300 text-sm leading-loose font-serif-sub text-stone-900" id="nerHighlightedPassage"></div>
+
+        <!-- Matched Entity Details Grid -->
+        <div>
+          <h4 class="font-heading font-bold text-xs text-amber-950 uppercase mb-2">Cross-Linked Database Records:</h4>
+          <div id="nerEntityCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/nlp_workbench.js') }}"></script>
+{% endblock %}

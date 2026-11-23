@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Mudra-Kosha – Ancient Indian Coinage & Currency Explorer{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="manuscript-card rounded-xl p-5 border border-amber-300">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-black text-amber-950 font-heading tracking-wide flex items-center gap-2">
+          <span>मुद्रा-कोश</span>
+          <span class="text-stone-400 font-light">&bull;</span>
+          <span>Mudra-Kosha (Ancient Coinage & Currency Explorer)</span>
+        </h1>
+        <p class="text-sm text-stone-600 mt-1">
+          Catalog of ancient Indian monetized standards, punch-marked silver <span class="font-bold text-amber-800">Karshapanas</span>, imperial gold <span class="font-bold text-amber-800">Dinars & Suvarnas</span>, and Satavahana maritime lead coinage.
+        </p>
+      </div>
+
+      <!-- Live Filters -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div>
+          <label class="block text-[11px] font-bold text-amber-900 mb-0.5">Metal Standard:</label>
+          <select id="coinMetalFilter" class="text-xs p-1.5 bg-white border border-amber-300 rounded shadow-sm font-semibold">
+            <option value="All">All Metals (32 Coins)</option>
+            <option value="Gold">Gold (Suvarna, Dinar, Gadyana)</option>
+            <option value="Silver">Silver (Karshapana, Rupya, Dramma)</option>
+            <option value="Copper">Copper & Billon (Pana, Kasu, Kakini)</option>
+            <option value="Lead">Lead & Potin (Satavahana, Kshatrapa)</option>
+            <option value="Shell">Cowrie Shell (Kaudi Standard)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-amber-900 mb-0.5">Search Coin, Issuer, or Motif:</label>
+          <input type="text" id="coinSearchInput" placeholder="e.g. Gupta, Karshapana, Chola..." class="text-xs p-1.5 bg-white border border-amber-300 rounded shadow-sm w-56">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Summary Bar -->
+  <div class="flex items-center justify-between text-xs text-stone-600 px-1 font-semibold">
+    <span id="coinCountDisplay">Displaying all 32 classical currency records...</span>
+    <span class="text-amber-800"><i class="fa-solid fa-coins mr-1"></i> 3NF Currency Registry &bull; PostgreSQL 13-Table Schema</span>
+  </div>
+
+  <!-- Coin Cards Grid -->
+  <div id="coinCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Populated via JavaScript -->
+  </div>
+
+  <!-- Obverse / Reverse Inspection Modal -->
+  <div id="coinDetailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#FFFDF7] rounded-xl border-2 border-amber-600 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="bg-amber-900 text-amber-100 px-6 py-4 flex items-center justify-between border-b border-amber-700">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-coins text-amber-400 text-xl"></i>
+          <div>
+            <h3 id="modalCoinTitle" class="font-heading text-lg font-bold">Coin Title</h3>
+            <p id="modalCoinSubtitle" class="text-xs text-amber-200">Dynasty & Metal Standard</p>
+          </div>
+        </div>
+        <button id="closeCoinModalBtn" class="text-amber-200 hover:text-white text-xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5">
+        <!-- Coin Visual Representation (Obverse & Reverse Plate) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="manuscript-card p-4 rounded-lg text-center border-amber-300 bg-amber-50/50">
+            <span class="text-xs font-bold text-amber-900 uppercase block mb-2">Obverse (Mukha) Motif</span>
+            <div id="modalObverseContent" class="text-xs text-stone-700 leading-relaxed font-serif-sub italic"></div>
+          </div>
+          <div class="manuscript-card p-4 rounded-lg text-center border-amber-300 bg-amber-50/50">
+            <span class="text-xs font-bold text-amber-900 uppercase block mb-2">Reverse (Prishtha) Motif</span>
+            <div id="modalReverseContent" class="text-xs text-stone-700 leading-relaxed font-serif-sub italic"></div>
+          </div>
+        </div>
+
+        <!-- Technical Numismatic Metrics -->
+        <div class="bg-white p-4 rounded-lg border border-amber-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div>
+            <span class="text-stone-500 block">Weight / Standard:</span>
+            <strong id="modalCoinWeight" class="text-amber-950 font-mono text-xs">Unit</strong>
+          </div>
+          <div>
+            <span class="text-stone-500 block">Metal:</span>
+            <strong id="modalCoinMetal" class="text-amber-950">Metal</strong>
+          </div>
+          <div>
+            <span class="text-stone-500 block">Circulation Era:</span>
+            <strong id="modalCoinEra" class="text-amber-950">Era</strong>
+          </div>
+          <div>
+            <span class="text-stone-500 block">Dating Note:</span>
+            <strong id="modalCoinStandard" class="text-amber-950">Dating Note</strong>
+          </div>
+        </div>
+
+        <!-- Historical & Numismatic Context -->
+        <div class="bg-amber-50/70 p-4 rounded-lg border border-amber-200 text-xs text-stone-700 space-y-2">
+          <div>
+            <strong class="text-amber-900 uppercase tracking-wider block text-[10px] mb-1">Historical Context & Numismatic Description:</strong>
+            <p id="modalCoinDesc" class="leading-relaxed font-serif-sub italic text-stone-800"></p>
+          </div>
+          <div id="modalIssuerNoteContainer" class="pt-2 border-t border-amber-200/60">
+            <strong class="text-amber-900">Issuer / Attestation Note:</strong>
+            <span id="modalCoinIssuerNote" class="text-stone-800 ml-1"></span>
+          </div>
+        </div>
+
+        <!-- Linked Trade Routes -->
+        <div>
+          <h4 class="font-heading font-bold text-xs text-amber-950 uppercase mb-2">Circulating Commercial Corridors:</h4>
+          <div id="modalCoinRoutes" class="flex flex-wrap gap-2"></div>
+        </div>
+
+      </div>
+
+      <div class="bg-amber-100/60 px-6 py-3 border-t border-amber-300 flex justify-end">
+        <button onclick="document.getElementById('coinDetailModal').classList.add('hidden')" class="btn-terracotta text-xs py-1.5 px-4">
+          Close Inspection
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let allCoinsData = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCoins();
+    document.getElementById('coinMetalFilter').addEventListener('change', filterAndRenderCoins);
+    document.getElementById('coinSearchInput').addEventListener('input', filterAndRenderCoins);
+
+    const modal = document.getElementById('coinDetailModal');
+    document.getElementById('closeCoinModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+  });
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
+  }
+
+  async function loadCoins() {
+    try {
+      const res = await fetch('/api/currencies');
+      const data = await res.json();
+      allCoinsData = data.data || [];
+      filterAndRenderCoins();
+    } catch (e) {
+      console.error('Error fetching currencies:', e);
+    }
+  }
+
+  function filterAndRenderCoins() {
+    const metalFilter = (document.getElementById('coinMetalFilter').value || 'All').trim().toLowerCase();
+    const query = (document.getElementById('coinSearchInput').value || '').trim().toLowerCase();
+
+    const filtered = allCoinsData.filter(coin => {
+      // 1. Metal Filter Check
+      let matchesMetal = true;
+      if (metalFilter !== 'all') {
+        const metalStr = (coin.metal || '').toString().toLowerCase();
+        matchesMetal = metalStr.includes(metalFilter);
+      }
+
+      // 2. Case-Insensitive Search across all schema-aligned fields
+      // If search box is empty, query is empty string, so matchesSearch is true!
+      let matchesSearch = true;
+      if (query) {
+        const searchFields = [
+          coin.coin_name,
+          coin.kingdom_name,
+          coin.issuer_note,
+          coin.metal,
+          coin.weight_standard,
+          coin.description,
+          coin.dating_note
+        ];
+        matchesSearch = searchFields.some(val => 
+          val !== null && val !== undefined && val.toString().toLowerCase().includes(query)
+        );
+      }
+
+      return matchesMetal && matchesSearch;
+    });
+
+    renderCoinsGrid(filtered);
+  }
+
+  function renderCoinsGrid(coins) {
+    const grid = document.getElementById('coinCardsGrid');
+    const countDisplay = document.getElementById('coinCountDisplay');
+    
+    if (countDisplay) {
+      countDisplay.textContent = `Displaying ${coins.length} of ${allCoinsData.length || 32} classical currency records`;
+    }
+
+    if (coins.length === 0) {
+      grid.innerHTML = `<div class="col-span-3 manuscript-card p-12 text-center text-stone-500">No coins match the specified criteria.</div>`;
+      return;
+    }
+
+    grid.innerHTML = coins.map(coin => {
+      // Schema keys: currency_id, coin_name, metal, kingdom_name, issuer_note, weight_standard, dating_note, description, source_id, source_title
+      const currencyId = coin.currency_id || '';
+      const coinName = coin.coin_name || 'Ancient Coin';
+      const metal = coin.metal || 'Currency';
+      const kingdomName = coin.kingdom_name || 'Autonomous Guild / Regional Issuer';
+      const issuerNote = coin.issuer_note || '';
+      const weightStandard = coin.weight_standard || 'Attested unit';
+      const datingNote = coin.dating_note || 'Standard numismatic era';
+      const era = `${coin.start_year || ''} to ${coin.end_year || ''}`.trim();
+
+      // Metal Badge Color Palette
+      let metalClass = 'bg-amber-50 text-amber-900 border-amber-300';
+      const mLower = metal.toLowerCase();
+      if (mLower.includes('gold')) {
+        metalClass = 'bg-amber-100 text-amber-950 border-amber-400';
+      } else if (mLower.includes('silver')) {
+        metalClass = 'bg-slate-100 text-slate-800 border-slate-400';
+      } else if (mLower.includes('lead') || mLower.includes('potin')) {
+        metalClass = 'bg-zinc-200 text-zinc-800 border-zinc-400';
+      } else if (mLower.includes('copper') || mLower.includes('billon') || mLower.includes('brass') || mLower.includes('bronze')) {
+        metalClass = 'bg-orange-100 text-orange-950 border-orange-300';
+      } else if (mLower.includes('shell')) {
+        metalClass = 'bg-teal-50 text-teal-900 border-teal-300';
+      }
+
+      const routes = coin.circulating_routes || ["Uttarapatha", "Dakshinapatha"];
+      const routeTags = routes.slice(0, 2).map(r => `<span class="px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 text-[10px]">${escapeHtml(r.split(' ')[0])}</span>`).join(' ');
+
+      return `
+        <div class="manuscript-card rounded-xl p-5 flex flex-col justify-between hover:border-amber-500 transition shadow-sm">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border ${metalClass}">
+                <i class="fa-solid fa-circle-dot text-[9px] mr-1"></i> ${escapeHtml(metal)}
+              </span>
+              <span class="font-mono text-[11px] font-bold text-stone-600 truncate max-w-[130px]" title="${escapeHtml(weightStandard)}">${escapeHtml(weightStandard)}</span>
+            </div>
+
+            <h3 class="font-heading font-black text-amber-950 text-base mb-1 leading-snug">${escapeHtml(coinName)}</h3>
+            <p class="text-xs text-amber-800 font-semibold mb-3">
+              <i class="fa-solid fa-crown text-amber-600 mr-1"></i> ${escapeHtml(kingdomName)} 
+              ${issuerNote && issuerNote !== kingdomName ? `<span class="text-stone-500 font-normal">(${escapeHtml(issuerNote)})</span>` : ''}
+            </p>
+
+            <div class="bg-amber-50/70 p-3 rounded-lg border border-amber-200 text-xs space-y-1.5 mb-4">
+              <div><strong class="text-amber-900">Circulation Era:</strong> <span class="text-stone-700">${escapeHtml(era)}</span></div>
+              <div><strong class="text-amber-900">Dating Note:</strong> <span class="text-stone-700">${escapeHtml(datingNote)}</span></div>
+              <div class="pt-1 flex items-center gap-1">
+                <strong class="text-amber-900">Corridors:</strong> ${routeTags || '<span class="text-stone-400 text-[11px]">Subcontinental transit</span>'}
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-amber-200/60 flex items-center justify-between">
+            <button onclick="window.openPramanaModal('currency', '${escapeHtml(currencyId)}')" class="badge-pramana text-[11px]">
+              <i class="fa-solid fa-scroll"></i> Pramāṇa Source
+            </button>
+            <button onclick="inspectCoin('${escapeHtml(currencyId)}')" class="btn-terracotta text-xs py-1.5 px-3">
+              <i class="fa-solid fa-magnifying-glass mr-1"></i> Motifs & Details
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.inspectCoin = function(currencyId) {
+    const coin = allCoinsData.find(c => String(c.currency_id) === String(currencyId));
+    if (!coin) return;
+
+    const coinName = coin.coin_name || 'Ancient Coin';
+    const metal = coin.metal || 'Currency';
+    const kingdomName = coin.kingdom_name || 'Autonomous Guild / Regional Issuer';
+    const issuerNote = coin.issuer_note || '';
+    const weightStandard = coin.weight_standard || 'Attested unit';
+    const datingNote = coin.dating_note || 'Standard numismatic era';
+    const description = coin.description || 'Attested in classical numismatic corpus.';
+    const era = `${coin.start_year || ''} to ${coin.end_year || ''}`.trim();
+
+    document.getElementById('modalCoinTitle').textContent = coinName;
+    document.getElementById('modalCoinSubtitle').textContent = `${kingdomName} • ${metal} Standard`;
+    document.getElementById('modalCoinWeight').textContent = weightStandard;
+    document.getElementById('modalCoinMetal').textContent = metal;
+    document.getElementById('modalCoinEra').textContent = era;
+    document.getElementById('modalCoinStandard').textContent = datingNote;
+    document.getElementById('modalCoinDesc').textContent = description;
+
+    const issuerNoteEl = document.getElementById('modalCoinIssuerNote');
+    if (issuerNote) {
+      issuerNoteEl.textContent = issuerNote;
+      document.getElementById('modalIssuerNoteContainer').classList.remove('hidden');
+    } else {
+      document.getElementById('modalIssuerNoteContainer').classList.add('hidden');
+    }
+
+    const meta = coin.artefact_metadata || {};
+    
+    // Obverse & Reverse Motifs
+    const obverseSymbols = Array.isArray(meta.obverse_symbols) ? meta.obverse_symbols.join(', ') : (meta.obverse_symbols || description || 'Royal portrait, solar wheel, or taurine symbols');
+    const reverseSymbols = Array.isArray(meta.reverse_symbols) ? meta.reverse_symbols.join(', ') : (meta.reverse_symbols || 'Chaitya, deity on lotus, ship with double masts, or dynastic legend');
+
+    document.getElementById('modalObverseContent').textContent = obverseSymbols;
+    document.getElementById('modalReverseContent').textContent = reverseSymbols;
+
+    // Corridors
+    const routes = coin.circulating_routes || ["Uttarapatha", "Dakshinapatha"];
+    const routesContainer = document.getElementById('modalCoinRoutes');
+    if (routes.length > 0) {
+      routesContainer.innerHTML = routes.map(r => `<span class="px-2 py-1 rounded bg-amber-100 text-amber-900 text-xs font-semibold border border-amber-300">${escapeHtml(r)}</span>`).join('');
+    } else {
+      routesContainer.innerHTML = `<span class="text-xs text-stone-500">General pan-Indian trade circulation.</span>`;
+    }
+
+    document.getElementById('coinDetailModal').classList.remove('hidden');
+  };
+</script>
+{% endblock %}
