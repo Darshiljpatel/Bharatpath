@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="92" fill="#E2E8F0" stroke="#94A3B8" stroke-width="4"/>
+  <circle cx="100" cy="100" r="80" fill="#CBD5E1" stroke="#64748B" stroke-dasharray="4,4" stroke-width="2"/>
+  <!-- Punch Marks -->
+  <!-- Sun Symbol -->
+  <circle cx="75" cy="75" r="14" fill="#94A3B8" stroke="#475569" stroke-width="2"/>
+  <path d="M75,55 L75,95 M55,75 L95,75 M61,61 L89,89 M61,89 L89,61" stroke="#475569" stroke-width="2"/>
+  <!-- Six-arm symbol -->
+  <circle cx="125" cy="80" r="12" fill="#94A3B8"/>
+  <path d="M125,62 L125,98 M110,72 L140,88 M110,88 L140,72" stroke="#334155" stroke-width="2.5"/>
+  <!-- Hill with crescent -->
+  <path d="M80,140 Q90,120 100,140 Q110,120 120,140" fill="none" stroke="#334155" stroke-width="3"/>
+  <path d="M90,120 Q100,105 110,120" fill="none" stroke="#334155" stroke-width="3"/>
+  <path d="M96,102 A5,5 0 0,0 104,102" fill="none" stroke="#334155" stroke-width="2"/>
+  <!-- Taxila symbol -->
+  <rect x="65" y="115" width="16" height="16" fill="none" stroke="#475569" stroke-width="2"/>
+  <text x="100" y="175" font-family="'Cinzel', serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">SILVER KARSHAPANA</text>
+</svg>

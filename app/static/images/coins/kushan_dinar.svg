@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="92" fill="#FEF08A" stroke="#CA8A04" stroke-width="4"/>
+  <circle cx="100" cy="100" r="82" fill="#FDE047" stroke="#A16207" stroke-width="2"/>
+  <!-- Standing King sacrificing at altar -->
+  <circle cx="100" cy="55" r="9" fill="#854D0E"/>
+  <!-- Cap / Diadem with ribbons -->
+  <path d="M93,48 L100,40 L107,48 Z" fill="#713F12"/>
+  <path d="M100,64 L100,115 L90,145 M100,115 L110,145" stroke="#713F12" stroke-width="4" stroke-linecap="round"/>
+  <!-- Spear in left hand -->
+  <line x1="120" y1="45" x2="120" y2="145" stroke="#713F12" stroke-width="2.5"/>
+  <!-- Fire altar on left -->
+  <path d="M72,125 L84,125 L80,145 L76,145 Z" fill="#854D0E"/>
+  <path d="M78,118 Q80,110 78,125" stroke="#EA580C" stroke-width="2"/>
+  <text x="100" y="175" font-family="'Cinzel', serif" font-size="11" font-weight="bold" fill="#713F12" text-anchor="middle">KUSHAN GOLD DINAR</text>
+</svg>

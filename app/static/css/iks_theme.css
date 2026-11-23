@@ -1,0 +1,178 @@
+/* ==========================================================================
+   BharatPath – IKS Manuscript Theme Stylesheet
+   Palette:
+     Parchment Canvas: #FAF3E0
+     Card Surface:     #FFFDF7
+     Indigo Ink:       #1E293B
+     Terracotta Accent:#B45309
+     Temple Gold:      #D97706
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+:root {
+  --bg-parchment: #FAF3E0;
+  --bg-card: #FFFDF7;
+  --text-ink: #1E293B;
+  --accent-terracotta: #B45309;
+  --accent-terracotta-dark: #92400E;
+  --accent-gold: #D97706;
+  --accent-gold-light: #FDE68A;
+  --border-parchment: #E7DBBE;
+  --border-gold: #D97706;
+}
+
+body {
+  background-color: var(--bg-parchment);
+  color: var(--text-ink);
+  font-family: 'Inter', sans-serif;
+  background-image: radial-gradient(#d6c7a7 0.75px, transparent 0.75px);
+  background-size: 24px 24px;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: 'Cinzel', serif;
+}
+
+.font-serif-sub {
+  font-family: 'Playfair Display', serif;
+}
+
+.font-mono-code {
+  font-family: 'Fira Code', monospace;
+}
+
+/* Elevated Manuscript Cards */
+.manuscript-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-parchment);
+  box-shadow: 0 4px 6px -1px rgba(180, 83, 9, 0.05), 0 2px 4px -1px rgba(180, 83, 9, 0.03);
+  transition: all 0.2s ease-in-out;
+}
+
+.manuscript-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(180, 83, 9, 0.1), 0 4px 6px -2px rgba(180, 83, 9, 0.05);
+  border-color: #D97706;
+}
+
+/* Gold Border Accents */
+.border-gold-accent {
+  border-color: var(--accent-gold);
+}
+
+/* Pramana Source Badges */
+.badge-pramana {
+  background-color: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #F59E0B;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.badge-pramana:hover {
+  background-color: #FDE68A;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(217, 119, 6, 0.2);
+}
+
+/* Primary Terracotta Buttons */
+.btn-terracotta {
+  background: linear-gradient(135deg, #B45309 0%, #92400E 100%);
+  color: #FFFFFF;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.55rem 1.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid #78350F;
+  box-shadow: 0 2px 4px rgba(180, 83, 9, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-terracotta:hover {
+  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(180, 83, 9, 0.3);
+}
+
+/* Map Containers */
+#manchitraMap {
+  width: 100%;
+  height: calc(100vh - 210px);
+  min-height: 520px;
+  border-radius: 0.5rem;
+  border: 2px solid var(--border-gold);
+  z-index: 10;
+}
+
+/* Warm Antique/Parchment styling for OpenStreetMap tiles */
+.leaflet-tile-pane {
+  filter: sepia(0.25) contrast(1.05) brightness(0.97) saturate(0.9);
+}
+
+/* Custom Leaflet Map Markers */
+.leaflet-popup-content-wrapper {
+  background-color: var(--bg-card) !important;
+  border: 2px solid var(--accent-gold) !important;
+  color: var(--text-ink) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.leaflet-popup-tip {
+  background-color: var(--bg-card) !important;
+  border: 2px solid var(--accent-gold) !important;
+}
+
+/* Custom Marker CSS Icons */
+.custom-city-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  color: white;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.marker-inland {
+  background-color: #B45309;
+}
+
+.marker-port {
+  background-color: #0284C7;
+}
+
+/* Collapsible SQL Inspector Drawer */
+#sqlDrawer {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 999;
+}
+
+#sqlDrawer.collapsed {
+  transform: translateY(calc(100% - 44px));
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F2E8CE;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4A373;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B45309;
+}
