@@ -2,6 +2,7 @@ import re
 import json
 from flask import Blueprint, request, jsonify
 from app.db import execute_query
+from app.nlp_sql import translate, NotUnderstood
 
 nlp_bp = Blueprint('nlp', __name__)
 
@@ -47,102 +48,6 @@ def sanitize_and_validate_sql(sql):
 
     return True, clean_sql.rstrip(';')
 
-def translate_vak_to_sql(question):
-    q = question.lower().strip()
-
-    # 1. Gold coins / Currencies of dynasties
-    if "gold" in q and ("coin" in q or "currency" in q or "dinar" in q or "kasu" in q):
-        if "gupta" in q:
-            return """SELECT c.currency_id, c.coin_name, k.kingdom_name, c.metal, c.start_year, c.end_year, c.weight_standard, c.description
-FROM currencies c
-JOIN kingdoms k ON c.issuing_kingdom_id = k.kingdom_id
-WHERE k.kingdom_name ILIKE '%Gupta%' AND c.metal ILIKE '%Gold%';"""
-        elif "chola" in q:
-            return """SELECT c.currency_id, c.coin_name, k.kingdom_name, c.metal, c.start_year, c.end_year, c.weight_standard
-FROM currencies c
-JOIN kingdoms k ON c.issuing_kingdom_id = k.kingdom_id
-WHERE k.kingdom_name ILIKE '%Chola%';"""
-        else:
-            return """SELECT c.currency_id, c.coin_name, k.kingdom_name, c.metal, c.start_year, c.end_year, c.weight_standard
-FROM currencies c
-JOIN kingdoms k ON c.issuing_kingdom_id = k.kingdom_id
-WHERE c.metal ILIKE '%Gold%';"""
-
-    # 2. Ports exporting black pepper or spices
-    if ("port" in q or "harbour" in q) and ("pepper" in q or "spice" in q):
-        return """SELECT DISTINCT p.port_id, p.port_name, p.coast, p.port_type, comm.commodity_name, rcom.trade_direction
-FROM ports p
-JOIN cities c ON p.city_id = c.city_id
-JOIN route_city rc ON c.city_id = rc.city_id
-JOIN route_commodity rcom ON rc.route_id = rcom.route_id
-JOIN commodities comm ON rcom.commodity_id = comm.commodity_id
-WHERE comm.commodity_name ILIKE '%pepper%' OR comm.category ILIKE '%spice%'
-ORDER BY p.port_name;"""
-
-    # 3. Ports under Chola dynasty
-    if "chola" in q and ("port" in q or "maritime" in q or "city" in q):
-        return """SELECT p.port_id, p.port_name, p.present_day_location, p.coast, p.port_type, k.kingdom_name
-FROM ports p
-JOIN cities c ON p.city_id = c.city_id
-JOIN kingdoms k ON c.region_id = k.region_id
-WHERE k.kingdom_name ILIKE '%Chola%';"""
-
-    # 4. Cities along Uttarapatha
-    if "uttarapatha" in q or ("northern" in q and "highway" in q):
-        return """SELECT rc.stop_sequence, c.city_id, c.ancient_name, c.modern_name, c.present_day_state, tr.route_name
-FROM route_city rc
-JOIN cities c ON rc.city_id = c.city_id
-JOIN trade_routes tr ON rc.route_id = tr.route_id
-WHERE tr.route_name ILIKE '%Uttarapatha%'
-ORDER BY rc.stop_sequence ASC;"""
-
-    # 5. Cities along Dakshinapatha
-    if "dakshinapatha" in q or ("southern" in q and "highway" in q):
-        return """SELECT rc.stop_sequence, c.city_id, c.ancient_name, c.modern_name, c.present_day_state, tr.route_name
-FROM route_city rc
-JOIN cities c ON rc.city_id = c.city_id
-JOIN trade_routes tr ON rc.route_id = tr.route_id
-WHERE tr.route_name ILIKE '%Dakshinapatha%'
-ORDER BY rc.stop_sequence ASC;"""
-
-    # 6. Commodities traded from Muziris / Barygaza
-    if "muziris" in q or "kodungallur" in q:
-        return """SELECT DISTINCT comm.commodity_name, comm.category, rcom.trade_direction, tr.route_name
-FROM commodities comm
-JOIN route_commodity rcom ON comm.commodity_id = rcom.commodity_id
-JOIN trade_routes tr ON rcom.route_id = tr.route_id
-JOIN route_city rc ON tr.route_id = rc.route_id
-JOIN cities c ON rc.city_id = c.city_id
-WHERE c.ancient_name ILIKE '%Muziris%' OR c.modern_name ILIKE '%Kodungallur%';"""
-
-    # 7. Travellers
-    if "traveller" in q or "pilgrim" in q or "megasthenes" in q or "xuanzang" in q or "faxian" in q:
-        trav_filter = ""
-        if "megasthenes" in q: trav_filter = "WHERE tv.traveller_name ILIKE '%Megasthenes%'"
-        elif "xuanzang" in q: trav_filter = "WHERE tv.traveller_name ILIKE '%Xuanzang%'"
-        elif "faxian" in q: trav_filter = "WHERE tv.traveller_name ILIKE '%Faxian%'"
-        return f"""SELECT tv.traveller_id, tv.traveller_name, tv.homeland, tv.role, tv.arrival_year, tv.account_title, tv.key_observation
-FROM travellers tv
-{trav_filter}
-ORDER BY tv.arrival_year_num ASC;"""
-
-    # 8. All maritime ports
-    if "port" in q:
-        return """SELECT port_id, port_name, present_day_location, coast, port_type, active_period_note
-FROM ports
-ORDER BY port_name ASC;"""
-
-    # 9. All commodities list
-    if "commodity" in q or "spices" in q or "textile" in q:
-        return """SELECT commodity_id, commodity_name, category, primary_source_area, trade_direction
-FROM commodities
-ORDER BY category, commodity_name;"""
-
-    # Default fallback: Cities
-    return """SELECT city_id, ancient_name, modern_name, present_day_state, present_day_country, city_type, historical_significance
-FROM cities
-ORDER BY ancient_name ASC;"""
-
 @nlp_bp.route('/api/nlp/sample-passages')
 def get_sample_passages():
     return jsonify({"passages": SAMPLE_PASSAGES})
@@ -155,7 +60,17 @@ def vak_to_sql():
     if not question:
         return jsonify({"error": "Question is required."}), 400
 
-    generated_sql = translate_vak_to_sql(question)
+    try:
+        generated_sql, explanation = translate(question, execute_query)
+    except NotUnderstood:
+        return jsonify({
+            "error": "Could not understand the question.",
+            "details": ("No table or known name was found in the question. Mention what you want "
+                        "(coins, ports, cities, kingdoms, routes, commodities, travellers, regions, periods, "
+                        "cultural exchanges) and/or a name from the data, e.g. 'gold coins of the Gupta Empire', "
+                        "'ports on the Malabar coast', 'how many coins per kingdom', 'Xuanzang'.")
+        }), 400
+
     is_safe, sanitized_sql_or_error = sanitize_and_validate_sql(generated_sql)
 
     if not is_safe:
@@ -170,6 +85,7 @@ def vak_to_sql():
         columns = list(res['data'][0].keys()) if res['data'] else []
         return jsonify({
             "question": question,
+            "explanation": explanation,
             "generated_sql": sanitized_sql_or_error,
             "safety_verified": True,
             "columns": columns,

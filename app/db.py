@@ -208,7 +208,8 @@ def execute_query(sql, params=None, fetch=True, commit=False):
                                     flat_params.append(item)
                             clean_params = tuple(flat_params)
                             break
-                elif "%s" in clean_sql:
+                elif params and "%s" in clean_sql:
+                    # Only placeholders are converted; a LIKE pattern such as '%silver%' must stay intact.
                     clean_sql = clean_sql.replace("%s", "?")
 
                 # Handle ILIKE in SQLite (convert to LIKE)

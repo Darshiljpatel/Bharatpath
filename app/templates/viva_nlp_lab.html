@@ -125,7 +125,27 @@
           <button onclick="setVakQuestion('Which commodities were traded from Muziris?')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
             Commodities from Muziris
           </button>
+          <button onclick="setVakQuestion('How many coins per kingdom?')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
+            Coins per kingdom (GROUP BY)
+          </button>
+          <button onclick="setVakQuestion('Maritime routes carrying spices')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
+            Maritime spice routes
+          </button>
+          <button onclick="setVakQuestion('Travellers who visited the Vijayanagara Empire')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
+            Visitors to Vijayanagara
+          </button>
+          <button onclick="setVakQuestion('Capital of the Maurya Empire')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
+            Mauryan capital
+          </button>
+          <button onclick="setVakQuestion('Kingdoms before 200 BC')" class="px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition">
+            Kingdoms before 200 BC
+          </button>
         </div>
+        <p class="text-[11px] text-stone-500 mt-2">
+          Tip: type a single word (e.g. <em>Gupta</em>, <em>pepper</em>, <em>Xuanzang</em>) or a question naming what to list
+          (coins, ports, cities, kingdoms, routes, commodities, travellers, regions, periods, cultural exchanges).
+          Words like <em>how many</em>, <em>per kingdom</em>, <em>before 300 BC</em>, <em>oldest</em> and <em>top 5</em> also work.
+        </p>
       </div>
 
       <!-- Question Input Form -->
@@ -139,6 +159,8 @@
 
       <!-- Vāk Results Container -->
       <div id="vakResultsBox" class="mt-6 hidden space-y-4">
+        <!-- How the question was understood -->
+        <div id="vakExplanation" class="hidden bg-amber-50 border border-amber-300 rounded-lg p-3 text-xs text-amber-950"></div>
         <!-- Safety & SQL Display -->
         <div class="bg-stone-900 p-4 rounded-lg text-xs space-y-2 font-mono">
           <div class="flex items-center justify-between text-amber-400 border-b border-stone-800 pb-2">

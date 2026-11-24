@@ -161,8 +161,12 @@
     const sqlEl = document.getElementById('vakGeneratedSql');
     const timingEl = document.getElementById('vakExecutionTiming');
     const tableContainer = document.getElementById('vakTableContainer');
+    const explainEl = document.getElementById('vakExplanation');
 
     resultsBox.classList.remove('hidden');
+    if (explainEl) explainEl.classList.add('hidden');
+    sqlEl.textContent = '';
+    timingEl.textContent = '';
     tableContainer.innerHTML = `
       <div class="p-6 text-center text-amber-800 text-xs">
         <i class="fa-solid fa-spinner fa-spin mr-1"></i> Translating question and executing SQL...
@@ -184,6 +188,11 @@
 
       sqlEl.textContent = data.generated_sql;
       timingEl.textContent = `${data.sql_meta.execution_ms} ms (${data.sql_meta.row_count} rows)`;
+      if (explainEl && data.explanation) {
+        explainEl.innerHTML = '<strong>Understood as:</strong> ' +
+          data.explanation.split(' | ').map(part => escapeHtml(part)).join(' &rarr; ');
+        explainEl.classList.remove('hidden');
+      }
       renderTable(tableContainer, data.columns, data.rows);
 
     } catch (e) {
